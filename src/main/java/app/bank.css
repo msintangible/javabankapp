@@ -1,0 +1,30 @@
+body{
+}
+Label{
+ -fx-text-fill:#000000;
+ -fx-font-size:12px;
+ -fx-font-weight:700;
+}
+
+
+#logo {
+  -fx-background-color: #00008b;
+
+}
+Button
+{
+  -fx-background-color:#000000;
+  -fx-text-fill:#ffffff;
+  -fx-font-size:14px;
+  -fx-border-raduis:0px;
+  -fx-border:none;
+  -fx-padding:5px 15px;
+  -fx-font-weight:bold;
+}
+Button:hover {
+    -fx-background-color: #00008b;  
+}
+
+#error{
+  -fx-text-fill: #FF0000;
+}

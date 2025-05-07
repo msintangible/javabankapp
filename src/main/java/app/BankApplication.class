@@ -1,0 +1,356 @@
+// Source code is decompiled from a .class file using FernFlower decompiler.
+package app;
+
+import dao.BankUserDAOImpl;
+import java.sql.SQLException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import model.Bank;
+import model.BankUserDTO;
+
+public class BankApplication extends Application {
+   private TextField fNameTF;
+   private TextField lNameTF;
+   private TextField emailTF;
+   private PasswordField pinTF;
+   private TextField phoneNoTF;
+   private Label error;
+   private TextField emailLoginTF;
+   private PasswordField passwordLoginTF;
+   private Label lgError;
+   private String fname;
+   private String lname;
+   private String email;
+   private String phoneNo;
+   private String loginEmail;
+   private int pin = 0;
+   private Label balLabel;
+   private Label errLbl;
+   private TextField amtField;
+   BankUserDAOImpl userdb;
+   BankUserDTO bankUser;
+   Bank userBankAccount;
+   private Stage primaryStage;
+
+   public BankApplication() {
+   }
+
+   public void start(Stage primaryStage) {
+      this.primaryStage = primaryStage;
+      Scene signUpScene = this.signUpScene();
+      signUpScene.getStylesheets().add("bank.css");
+      this.switchScene(signUpScene);
+   }
+
+   public void switchScene(Scene newScene) {
+      if (newScene == null) {
+         System.out.println("primaryStage is null!");
+      } else {
+         newScene.getStylesheets().add(this.getClass().getResource("bank.css").toExternalForm());
+         this.primaryStage.setScene(newScene);
+         this.primaryStage.show();
+      }
+   }
+
+   private Scene signUpScene() {
+      HBox hbox = new HBox(20.0);
+      hbox.getChildren().addAll(new Node[]{this.logo(), this.signUpForm()});
+      hbox.setAlignment(Pos.CENTER);
+      hbox.setPadding(new Insets(20.0));
+      return new Scene(hbox, 440.0, 480.0);
+   }
+
+   private VBox signUpForm() {
+      VBox vbox = new VBox(25.0);
+      vbox.setId("sign-up");
+      this.fNameTF = new TextField();
+      this.lNameTF = new TextField();
+      this.emailTF = new TextField();
+      this.pinTF = new PasswordField();
+      this.phoneNoTF = new TextField();
+      this.error = new Label("");
+      this.error.setId("error");
+      Button signUpBtn = new Button("Sign Up");
+      Button loginBtn = new Button("Login");
+      signUpBtn.setOnAction((e) -> {
+         if (this.insertUser()) {
+            this.switchScene(this.accountScene());
+         }
+
+      });
+      loginBtn.setOnAction((e) -> {
+         this.switchScene(this.loginScene());
+      });
+      vbox.getChildren().addAll(new Node[]{new HBox(new Node[]{new Label("First Name: "), this.fNameTF}), new HBox(new Node[]{new Label("Last Name: "), this.lNameTF}), new HBox(new Node[]{new Label("Email: "), this.emailTF}), new HBox(new Node[]{new Label("Enter PIN: "), this.pinTF}), new HBox(new Node[]{new Label("Phone Num: "), this.phoneNoTF}), signUpBtn, loginBtn, this.error});
+      vbox.setAlignment(Pos.CENTER);
+      return vbox;
+   }
+
+   public VBox logo() {
+      VBox vbox = new VBox(10.0);
+      vbox.setId("logo");
+      vbox.setMinWidth(155.0);
+      System.out.println("Image Path: " + this.getClass().getResource("visa.png"));
+      Image img = new Image(this.getClass().getResource("visa.png").toExternalForm());
+      ImageView imageView = new ImageView(img);
+      vbox.getChildren().add(imageView);
+      vbox.setAlignment(Pos.CENTER);
+      vbox.setPadding(new Insets(20.0));
+      return vbox;
+   }
+
+   public boolean isTextValue() {
+      this.fname = this.fNameTF.getText().trim();
+      this.lname = this.lNameTF.getText().trim();
+      this.email = this.emailTF.getText().trim();
+      String stringPin = this.pinTF.getText().trim();
+      this.phoneNo = this.phoneNoTF.getText().trim();
+      if (!this.fname.isEmpty() && !this.lname.isEmpty() && !this.email.isEmpty() && !this.phoneNo.isEmpty() && !stringPin.isEmpty()) {
+         String emailRegex = "^\\w{5,15}@\\w+\\.[a-zA-Z]{2,3}$";
+         String passRegex = "^\\d{4}$";
+         String phoneRegex = "^\\+?\\d{7,15}$";
+         Pattern emailPattern = Pattern.compile(emailRegex);
+         Pattern passwordPattern = Pattern.compile(passRegex);
+         Pattern phonePattern = Pattern.compile(phoneRegex);
+         Matcher emailMatcher = emailPattern.matcher(this.email);
+         Matcher passMatcher = passwordPattern.matcher(stringPin);
+         Matcher phoneMatcher = phonePattern.matcher(this.phoneNo);
+         if (!emailMatcher.matches()) {
+            System.out.println("Invalid email");
+            return false;
+         } else if (!phoneMatcher.matches()) {
+            System.out.println("Invalid phone number");
+            return false;
+         } else {
+            try {
+               if (passMatcher.matches()) {
+                  this.pin = Integer.parseInt(stringPin);
+                  return true;
+               } else {
+                  return true;
+               }
+            } catch (NumberFormatException var12) {
+               System.out.println("PIN is not a valid number");
+               return false;
+            }
+         }
+      } else {
+         this.error.setText("Enter all fields correctly");
+         return false;
+      }
+   }
+
+   public boolean insertUser() {
+      if (this.isTextValue()) {
+         try {
+            this.userdb = new BankUserDAOImpl();
+            this.bankUser = new BankUserDTO(this.fname, this.lname, this.email, this.pin, this.phoneNo);
+            this.userdb.insert(this.bankUser);
+            this.userBankAccount = new Bank(this.bankUser.getId());
+            this.userdb.insertBank(this.userBankAccount);
+            this.printUserDetails(this.bankUser);
+         } catch (SQLException var2) {
+            var2.printStackTrace();
+         }
+
+         return true;
+      } else {
+         this.error.setText("Sign-up unsuccessful. Make sure all fields are entered correctly.");
+         this.printUserDetails();
+         return false;
+      }
+   }
+
+   public void printUserDetails() {
+      System.out.println("First Name: " + this.fname);
+      System.out.println("Last Name: " + this.lname);
+      System.out.println("Email: " + this.email);
+      System.out.println("PIN: " + this.pin);
+      System.out.println("Phone Number: " + this.phoneNo);
+   }
+
+   private void printUserDetails(BankUserDTO user) {
+      System.out.println("Login successful!");
+      System.out.println("User Details:");
+      System.out.println("First Name: " + user.getFname());
+      System.out.println("Last Name: " + user.getLname());
+      System.out.println("Email: " + user.getEmail());
+      System.out.println("Phone Number: " + user.getPhone());
+   }
+
+   private Scene accountScene() {
+      VBox accountDashboard = new VBox(10.0);
+      accountDashboard.getChildren().addAll(new Node[]{this.createLabel(), this.createButtonPane()});
+      return new Scene(accountDashboard, 300.0, 200.0);
+   }
+
+   public VBox createLabel() {
+      VBox pane = new VBox(10.0);
+      HBox panes = new HBox(10.0);
+      this.errLbl = new Label("");
+      this.balLabel = new Label("Balance = " + this.userBankAccount.getBalance());
+      this.amtField = new TextField("0.0");
+      Label amtLabel = new Label("Amount ");
+      pane.getChildren().addAll(new Node[]{panes, amtLabel, this.amtField, this.errLbl});
+      pane.setAlignment(Pos.CENTER);
+      pane.setPadding(new Insets(10.0));
+      panes.getChildren().addAll(new Node[]{this.balLabel});
+      panes.setAlignment(Pos.CENTER);
+      panes.setPadding(new Insets(10.0));
+      return pane;
+   }
+
+   public HBox createButtonPane() {
+      HBox pane = new HBox(10.0);
+      Button withBtn = new Button("Withdraw");
+      withBtn.setOnAction((e) -> {
+         if (this.isDouble(this.amtField)) {
+            double withamt = Double.parseDouble(this.amtField.getText());
+            if (this.userBankAccount.withdraw(withamt)) {
+               this.balLabel.setText("Balance = " + this.userBankAccount.getBalance());
+               System.out.println("withdraw successfull");
+               this.errLbl.setText("withdraw successfull");
+            } else {
+               System.out.println("invalid");
+               this.errLbl.setText("withdraw UNsuccessfull");
+            }
+         } else {
+            System.out.println("invalid");
+            this.errLbl.setText("withdraw UNsuccessfull");
+         }
+
+      });
+      Button deptBtn = new Button("Deposit");
+      deptBtn.setOnAction((e) -> {
+         if (this.isDouble(this.amtField)) {
+            double depamt = Double.parseDouble(this.amtField.getText());
+            if (this.userBankAccount.deposit(depamt)) {
+               this.balLabel.setText("Balance = " + this.userBankAccount.getBalance());
+               System.out.println("deposit successfull");
+               this.errLbl.setText("deposit successfull");
+            } else {
+               this.errLbl.setText("deposit UNsuccessfull");
+            }
+         } else {
+            this.errLbl.setText("deposit UNsuccessfull");
+         }
+
+      });
+      pane.getChildren().addAll(new Node[]{deptBtn, withBtn});
+      pane.setAlignment(Pos.CENTER);
+      pane.setPadding(new Insets(0.0));
+      return pane;
+   }
+
+   public boolean isDouble(TextField fld) {
+      try {
+         Double.parseDouble(fld.getText());
+         return true;
+      } catch (NumberFormatException var3) {
+         System.out.println("Data Entry Error");
+         return false;
+      }
+   }
+
+   public Scene loginScene() {
+      VBox vbox = new VBox(10.0);
+      vbox.getChildren().addAll(new Node[]{this.loginForm()});
+      vbox.setAlignment(Pos.CENTER);
+      return new Scene(vbox, 300.0, 200.0);
+   }
+
+   public VBox loginForm() {
+      VBox loginVBox = new VBox(10.0);
+      this.emailLoginTF = new TextField();
+      this.passwordLoginTF = new PasswordField();
+      Button loginButton = new Button("Login");
+      this.lgError = new Label();
+      loginButton.setOnAction((e) -> {
+         if (this.loggedUser()) {
+            this.switchScene(this.accountScene());
+         }
+
+      });
+      loginVBox.getChildren().addAll(new Node[]{new HBox(new Node[]{new Label("Email:    "), this.emailLoginTF}), new HBox(new Node[]{new Label("Pin: "), this.passwordLoginTF}), this.lgError, loginButton});
+      loginVBox.setAlignment(Pos.CENTER);
+      loginVBox.setPadding(new Insets(20.0));
+      return loginVBox;
+   }
+
+   public boolean validateLoginInput() {
+      this.loginEmail = this.emailLoginTF.getText().trim();
+      String pinText = this.passwordLoginTF.getText().trim();
+      if (!this.loginEmail.isEmpty() && !pinText.isEmpty()) {
+         String emailRegex = "^\\w{5,15}@\\w+\\.[a-zA-Z]{2,3}$";
+         String passRegex = "^\\d{4}$";
+         Pattern emailPattern = Pattern.compile(emailRegex);
+         Pattern passwordPattern = Pattern.compile(passRegex);
+         Matcher emailMatcher = emailPattern.matcher(this.loginEmail);
+         Matcher passMatcher = passwordPattern.matcher(pinText);
+         if (!emailMatcher.matches()) {
+            System.out.println("Invalid email");
+            return false;
+         } else {
+            try {
+               if (passMatcher.matches()) {
+                  this.pin = Integer.parseInt(pinText);
+                  return true;
+               } else {
+                  return true;
+               }
+            } catch (NumberFormatException var9) {
+               this.lgError.setText("PIN must be a valid number.");
+               return false;
+            }
+         }
+      } else {
+         this.lgError.setText("Please enter both email and PIN.");
+         return false;
+      }
+   }
+
+   public boolean loggedUser() {
+      System.out.println(this.pin);
+      System.out.println(this.loginEmail);
+      if (this.validateLoginInput()) {
+         try {
+            this.userdb = new BankUserDAOImpl();
+            this.bankUser = this.userdb.findUserByEmailAndPin(this.loginEmail, this.pin);
+            if (this.bankUser != null) {
+               this.userBankAccount = new Bank(this.bankUser.getId());
+               System.out.println(this.userBankAccount.toString());
+               this.printUserDetails(this.bankUser);
+               return true;
+            } else {
+               this.lgError.setText("Invalid email or PIN.");
+               return false;
+            }
+         } catch (SQLException var2) {
+            var2.printStackTrace();
+            this.lgError.setText("An error occurred. Please try again.");
+            return false;
+         }
+      } else {
+         this.lgError.setText("An error occurred. Please try again.");
+         return false;
+      }
+   }
+
+   public static void main(String[] args) {
+      launch(args);
+   }
+}

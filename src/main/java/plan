@@ -1,0 +1,63 @@
+#bank application plannig
+User Features:
+Sign up with first name, last name, email, PIN, and phone number.
+Login with email and PIN.
+View banking details (balance, recent transactions).
+Deposit and withdraw money.
+
+
+Database Design
+2.1. Design the Database Schema
+Users Table:
+user_id (Primary Key, Auto-increment)
+first_name (VARCHAR)
+last_name (VARCHAR)
+email (VARCHAR, Unique)
+pin (VARCHAR, Store hashed value)
+phone_number (VARCHAR)
+
+Bank Accounts Table:
+account_id (Primary Key, Auto-increment)
+user_id (Foreign Key from Users Table)
+balance (DECIMAL)
+
+
+
+Use MySQL Workbench or a similar tool to create the database and tables based on the schema design.
+Test the database connection using JDBC in a simple Java program.
+3. Backend Development
+
+3.1. Create Models
+Define Java classes corresponding to the database tables (User, BankAccount, Transaction).
+3.2. Implement DAO (Data Access Object) Layer
+Create interfaces and classes for interacting with the database (e.g., UserDAO, AccountDAO, TransactionDAO).
+Implement CRUD operations for each entity (e.g., create user, retrieve account details, insert transactions).
+3.3. Create Service Layer
+Implement business logic in service classes (e.g., UserService, AccountService).
+Handle operations like user registration, authentication, deposits, and withdrawals.
+4. Frontend Development
+4.1. Design the UI with JavaFX
+Sign Up Page: Create a form with fields for first name, last name, email, PIN, and phone number. Include validation.
+Login Page: Create a login form with fields for email and PIN.
+Dashboard: Display the user's account balance, recent transactions, and options to deposit or withdraw money.
+4.2. Implement UI Logic
+Use JavaFX Controllers to handle UI events and bind data between the UI and backend.
+For sign-up and login, capture the user inputs and call the appropriate service methods to store or verify data.
+After a successful login, transition to the user's dashboard.
+5. Integration
+5.1. Connect UI with Backend
+Use the service layer to handle user actions from the JavaFX UI.
+Test the flow from the sign-up page to database storage, from the login page to user authentication, and from the dashboard to banking operations.
+5.2. Implement Security
+Hash and salt the PIN before storing it in the database.
+Ensure secure database connections with JDBC.
+Implement basic input validation to prevent SQL injection and other vulnerabilities.
+6. Testing and Debugging
+6.1. Unit Testing
+Write unit tests for the DAO and service layers using JUnit.
+Mock the database connection to test service logic without needing an actual database connection.
+6.2. Integration Testing
+Test the entire sign-up, login, and banking transaction flow.
+Ensure that data is correctly stored, retrieved, and displayed.
+6.3. UI Testing
+Test the UI for different screen sizes, input validation, and user experience.
